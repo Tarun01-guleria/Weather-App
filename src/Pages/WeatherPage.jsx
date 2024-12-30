@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import WeatherRow from "../Components/WeatherRow";
 import WeatherSummary from "../Components/WeatherSummary";
 import getWeather from "../api/weatherApi";
+import Loader from "../Components/Loader";
 
 // This function will fetch coordinates of lat and lon
 const fetchCoordinates = (callback) => {
@@ -18,12 +19,15 @@ function WeatherPage() {
   const [todayWeather, setTodayWeather] = useState({});
   const [weekWeather, setWeekWeather] = useState([]);
   const [isCelsius, setIsCelsius] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const isDay = todayWeather.isDay ?? true;
 
   useEffect(() => {
     fetchCoordinates(async (latitude, longitude) => {
+      setIsLoading(true);
       const weatherInfo = await getWeather({ latitude, longitude });
       convertToStateVariable(weatherInfo);
+      setIsLoading(false);
     });
   }, []);
 
@@ -45,6 +49,14 @@ function WeatherPage() {
     delete currentWeather.is_day;
     setTodayWeather(currentWeather);
   };
+
+  if (isLoading) {
+    return (
+      <div>
+        <Loader />
+      </div>
+    );
+  }
 
   return (
     <div className={isDay ? "day" : "day dark"}>
@@ -75,15 +87,9 @@ function WeatherPage() {
             </tr>
           </thead>
           <tbody className="table-custom">
-            {weekWeather.map((weather) => {
-              return (
-                <WeatherRow
-                  weather={weather}
-                  isCelsius={isCelsius}
-                  key={weather.date}
-                />
-              );
-            })}
+            {weekWeather.map((weather, index) => (
+              <WeatherRow key={index} weather={weather} isCelsius={isCelsius} />
+            ))}
           </tbody>
         </table>
       </div>
